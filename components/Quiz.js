@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import toast from "react-hot-toast";
-import { useClerk } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 
 function Quiz({ questions, onQuizPassed }) {
   const router = useRouter();
-  const { user } = useClerk();
+  const { user } = useUser();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showScore, setShowScore] = useState(false);
   const [answers, setAnswers] = useState([]);

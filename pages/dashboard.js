@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 
-import { useClerk } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { saveAs } from "file-saver";
 import { Lock, Unlock } from "react-feather";
 import toast, { Toaster } from "react-hot-toast";
 
 function Dashboard() {
-  const { user } = useClerk();
+  const { user } = useUser();
 
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,13 +17,17 @@ function Dashboard() {
 
   // Guard: don't render anything until Clerk has loaded the user
   if (!user) {
-    return <div className="dashboard"><div className="spinner"></div></div>;
+    return (
+      <div className="dashboard">
+        <div className="spinner"></div>
+      </div>
+    );
   }
 
   const downloadPDF = async () => {
     const userName = user?.fullName || user?.firstName || "Student";
     const existingPdfBytes = await fetch("/certificate.pdf").then((res) =>
-      res.arrayBuffer()
+      res.arrayBuffer(),
     );
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
@@ -64,17 +68,17 @@ function Dashboard() {
       try {
         // Fetch user progress and total published course count in parallel
         const [userRes, countRes] = await Promise.all([
-          fetch(`/api/user/${user.id}`, { cache: "no-store" }),
-          fetch(`/api/courses/count`, { cache: "no-store" }),
+          fetch(`/api/user/${user.id}?t=${Date.now()}`, { cache: "no-store" }),
+          fetch(`/api/courses/count?t=${Date.now()}`, { cache: "no-store" }),
         ]);
 
         const userData = await userRes.json();
         const { count: total } = await countRes.json();
         setTotalCourses(total);
 
-        const completedCourses = userData[0]?.courses?.filter(
-          (course) => course.completed === true
-        ) ?? [];
+        const completedCourses =
+          userData[0]?.courses?.filter((course) => course.completed === true) ??
+          [];
 
         // Unlock certificate when ALL published courses are completed
         if (total > 0 && completedCourses.length >= total) {
@@ -124,7 +128,8 @@ function Dashboard() {
         ) : (
           <div className="dashboard__completed-courses">
             {courses.map((course, index) => {
-              const imgFile = courseImageMap[course.course] ?? `${course.course}.svg`;
+              const imgFile =
+                courseImageMap[course.course] ?? `${course.course}.svg`;
               return (
                 <div key={index} className="dashboard__course">
                   <p className="dashboard__course-title">
@@ -135,7 +140,9 @@ function Dashboard() {
                     alt={course.course}
                     width="50"
                     height="50"
-                    onError={(e) => { e.target.style.display = "none"; }}
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                    }}
                   />
                 </div>
               );
@@ -157,7 +164,11 @@ function Dashboard() {
           className={`dashboard__certificate-btn ${disabled ? "disabled" : ""}`}
           disabled={disabled}
           onClick={downloadPDF}
-          aria-label={disabled ? "Certificate locked — complete all courses" : "Download your certificate"}
+          aria-label={
+            disabled
+              ? "Certificate locked — complete all courses"
+              : "Download your certificate"
+          }
         >
           <span className="dashboard__certificate-btn--text">
             Download Certificate
