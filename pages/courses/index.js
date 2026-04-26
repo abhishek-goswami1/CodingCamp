@@ -73,8 +73,23 @@ function Courses({ courseList }) {
       try {
         const res = await fetch(`/api/user/${user.id}`);
         const data = await res.json();
-        if (!data.length) { setLoading(false); return; }
-        setCourses(data[0]?.courses);
+        
+        let apiCourses = data.length ? data[0]?.courses : [];
+        
+        // Merge frontend-only local completions for immediate feedback
+        const localKey = `mcc_completed_${user.id}`;
+        const localCompletedSlugs = JSON.parse(localStorage.getItem(localKey) || "[]");
+        
+        localCompletedSlugs.forEach((slug) => {
+          const existing = apiCourses.find(c => c.course === slug);
+          if (existing) {
+             existing.completed = true;
+          } else {
+             apiCourses.push({ course: slug, completed: true });
+          }
+        });
+
+        setCourses(apiCourses);
         setLoading(false);
       } catch (err) {
         console.log(err);
@@ -96,13 +111,23 @@ function Courses({ courseList }) {
         {courseList.map((course) => (
           <div className="courses__card" key={course.course}>
             <div className="courses__card-header">
-              <img
-                src={`/images/${course.image}`}
-                alt={course.name}
-                width="60"
-                height="60"
-                className="courses__card-logo"
-              />
+              {course.ytURL ? (
+                <img
+                  src={`https://img.youtube.com/vi/${
+                    course.ytURL.match(/(?:v=|youtu\.be\/|embed\/)([^&?/]+)/)?.[1] || ""
+                  }/mqdefault.jpg`}
+                  alt={course.name}
+                  style={{ width: "100%", height: "160px", objectFit: "cover", borderRadius: "6px", display: "block", marginBottom: "0.75rem" }}
+                />
+              ) : (
+                <img
+                  src={`/images/${course.image}`}
+                  alt={course.name}
+                  width="60"
+                  height="60"
+                  className="courses__card-logo"
+                />
+              )}
               <span className="courses__card-title">{course.name}</span>
             </div>
 

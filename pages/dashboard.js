@@ -45,12 +45,15 @@ function Dashboard() {
 
   // Map course slugs to their actual image filenames in /public/images/
   const courseImageMap = {
-    hrml: "html.svg",
+    html: "html.svg",
+    hrml: "html.svg", // typo slug fallback
     css: "css.svg",
     git: "git.svg",
     js: "js.svg",
+    javascript: "js.svg",
     react: "react.svg",
     node: "node.svg",
+    nodejs: "node.svg",
     mongodb: "mongodb.svg",
     "how-website-works": "web.svg",
     "1min": "web.svg",
@@ -72,9 +75,20 @@ function Dashboard() {
         const { count: total } = await countRes.json();
         setTotalCourses(total);
 
-        const completedCourses = userData[0]?.courses?.filter(
+        // Check local storage for any immediate frontend-only completions
+        const localKey = `mcc_completed_${user.id}`;
+        const localCompletedSlugs = JSON.parse(localStorage.getItem(localKey) || "[]");
+
+        let completedCourses = userData[0]?.courses?.filter(
           (course) => course.completed === true
         ) ?? [];
+
+        // Merge local state that might not be synced to API yet
+        localCompletedSlugs.forEach((slug) => {
+          if (!completedCourses.find((c) => c.course === slug)) {
+             completedCourses.push({ course: slug, completed: true });
+          }
+        });
 
         // Unlock certificate when ALL published courses are completed
         if (total > 0 && completedCourses.length >= total) {

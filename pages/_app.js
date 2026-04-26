@@ -34,7 +34,7 @@ function MyApp({ Component, pageProps }) {
         <meta name="description" content="The Coding Camp — A free online mini coding bootcamp" />
         <meta name="keywords" content="coding, bootcamp, web development, javascript, react" />
         <meta name="theme-color" content="#ec3944" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta property="og:title" content="The Coding Camp" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://minicodecamp.vercel.app/" />

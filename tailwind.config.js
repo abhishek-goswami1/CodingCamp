@@ -1,0 +1,80 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./pages/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}",
+  ],
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "surface-container-high": "#ebe8e1",
+        "secondary-container": "#e2dfde",
+        "on-primary-fixed": "#410005",
+        "outline": "#8f6f6d",
+        "primary-fixed": "#ffdad7",
+        "on-secondary-container": "#636262",
+        "surface-container": "#f0eee7",
+        "tertiary-container": "#7c7365",
+        "surface-tint": "#bb1527",
+        "surface-bright": "#fcf9f2",
+        "inverse-primary": "#ffb3af",
+        "outline-variant": "#e4bebb",
+        "inverse-surface": "#31312c",
+        "on-primary-container": "#fffbff",
+        "error": "#ba1a1a",
+        "secondary": "#5f5e5e",
+        "on-error": "#ffffff",
+        "tertiary": "#635b4e",
+        "secondary-fixed-dim": "#c8c6c5",
+        "surface-variant": "#e5e2db",
+        "tertiary-fixed-dim": "#d0c5b5",
+        "primary-fixed-dim": "#ffb3af",
+        "on-tertiary-container": "#fffbff",
+        "on-background": "#1c1c18",
+        "on-surface-variant": "#5b403e",
+        "primary": "#b71125",
+        "on-tertiary": "#ffffff",
+        "background": "#fcf9f2",
+        "tertiary-fixed": "#ede1d0",
+        "surface-container-low": "#f6f3ec",
+        "on-surface": "#1c1c18",
+        "on-primary-fixed-variant": "#930018",
+        "surface-dim": "#dcdad3",
+        "secondary-fixed": "#e5e2e1",
+        "on-secondary-fixed-variant": "#474746",
+        "on-tertiary-fixed": "#201b11",
+        "on-error-container": "#93000a",
+        "on-tertiary-fixed-variant": "#4d4639",
+        "surface-container-lowest": "#ffffff",
+        "primary-container": "#db313b",
+        "error-container": "#ffdad6",
+        "on-secondary": "#ffffff",
+        "on-secondary-fixed": "#1c1b1b",
+        "surface-container-highest": "#e5e2db",
+        "surface": "#fcf9f2",
+        "on-primary": "#ffffff",
+        "inverse-on-surface": "#f3f0ea"
+      },
+      fontFamily: {
+        "label-md": ["Lexend"],
+        "label-lg": ["Lexend"],
+        "headline-lg": ["Plus Jakarta Sans"],
+        "label-sm": ["Lexend"],
+        "headline-md": ["Plus Jakarta Sans"],
+        "display-md": ["Plus Jakarta Sans"],
+        "body-sm": ["Lexend"],
+        "body-lg": ["Lexend"],
+        "display-lg": ["Plus Jakarta Sans"],
+        "body-md": ["Lexend"]
+      }
+    }
+  },
+  corePlugins: {
+    preflight: false,
+  },
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/container-queries')
+  ],
+}

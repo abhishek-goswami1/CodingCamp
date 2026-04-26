@@ -112,12 +112,11 @@ export function CourseForm({ initial = null, courseSlug = null }) {
                 value={form.course}
                 onChange={handleChange}
                 placeholder="e.g. typescript"
-                disabled={isEdit}
                 aria-describedby="slug-hint"
                 required
               />
               <span id="slug-hint" className="form-hint">
-                Auto-generated. Lowercase, hyphens only. Cannot be changed after creation.
+                {isEdit ? "⚠️ Changing the slug will break existing course links." : "Auto-generated. Lowercase, hyphens only."}
               </span>
             </div>
           </div>

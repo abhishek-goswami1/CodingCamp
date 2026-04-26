@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
-import { User, LogOut, TrendingUp, GitHub, Shield } from "react-feather";
+import { User, LogOut, TrendingUp, GitHub, Shield, Terminal } from "react-feather";
 import { useClerk } from "@clerk/nextjs";
 
 function Navbar() {
@@ -110,8 +110,14 @@ function Navbar() {
         )}
         {user && (
           <div className="navigation__auth">
+            <Link href="/compiler">
+              <a className="navigation__courses" style={{ marginRight: "10px", display: "flex", alignItems: "center", gap: "5px" }}>
+                <Terminal size={18} />
+                <span>Compiler</span>
+              </a>
+            </Link>
             <Link href="/courses">
-              <a className="navigation__courses">
+              <a className="navigation__courses" style={{ display: "flex", alignItems: "center" }}>
                 <span>{offline ? "Offline" : "Courses"}</span>
               </a>
             </Link>

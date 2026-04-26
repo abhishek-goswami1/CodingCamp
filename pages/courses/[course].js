@@ -6,7 +6,8 @@ import { useClerk } from "@clerk/nextjs";
 import ReactPlayer from "react-player/youtube";
 import toast, { Toaster } from "react-hot-toast";
 import { ExternalLink, Award } from "react-feather";
-import jsPDF from "jspdf";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { saveAs } from "file-saver";
 
 import Quiz from "../../components/Quiz";
 
@@ -23,6 +24,7 @@ function CoursePage({ course }) {
   
   const [checkCourseCompleted, setCheckCourseCompleted] = useState(false);
   const [maxPlayedSeconds, setMaxPlayedSeconds] = useState(0);
+  const [initialSeekTime, setInitialSeekTime] = useState(0);
   const [isSeeking, setIsSeeking] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -31,8 +33,15 @@ function CoursePage({ course }) {
   const playerRef = useRef(null);
   const quizRef = useRef(null);
 
-  // Initialize progress
+  // Initialize progress and silence ReactPlayer warnings
   useEffect(() => {
+    // Silence harmless ReactPlayer warnings in the console
+    const originalWarn = console.warn;
+    console.warn = (...args) => {
+      if (args[0] && typeof args[0] === 'string' && args[0].includes('ReactPlayer: YouTube player could not call')) return;
+      originalWarn.apply(console, args);
+    };
+
     const initUserProgress = async () => {
       if (!user?.id) return;
       try {
@@ -53,18 +62,24 @@ function CoursePage({ course }) {
 
         const courseObj = data[0].courses.find((c) => c.course === router.query.course);
 
+        // Check local storage for immediate frontend state
+        const localKey = `mcc_completed_${user.id}`;
+        const localCompleted = JSON.parse(localStorage.getItem(localKey) || "[]");
+        const isLocallyCompleted = localCompleted.includes(router.query.course);
+
         if (courseObj) {
-          setCheckCourseCompleted(courseObj.completed);
+          setCheckCourseCompleted(courseObj.completed || isLocallyCompleted);
           setMaxPlayedSeconds(courseObj.videoProgress || 0);
           // Auto-seek to where they left off
-          if (playerRef.current && courseObj.videoProgress > 0 && !courseObj.videoCompleted) {
-            playerRef.current.seekTo(courseObj.videoProgress, "seconds");
+          if (courseObj.videoProgress > 0 && !courseObj.videoCompleted) {
+            setInitialSeekTime(courseObj.videoProgress);
           }
         } else {
+          if (isLocallyCompleted) setCheckCourseCompleted(true);
           await fetch(`/api/user/${user.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ course: router.query.course, completed: false }),
+            body: JSON.stringify({ course: router.query.course, completed: isLocallyCompleted }),
           });
         }
       } catch (err) {
@@ -134,12 +149,27 @@ function CoursePage({ course }) {
   };
 
   const handleEnded = () => {
-    if (duration > 0) {
-      saveProgressToDB(duration, duration); // Save 100%
+    // 1. Instantly mark course as completed on frontend
+    setCheckCourseCompleted(true);
+    toast.success("Course completely finished! 🎉", { style: toastStyles });
+
+    // 2. Save completion state locally for immediate dashboard reflection
+    const localKey = `mcc_completed_${user?.id || "guest"}`;
+    const localCompleted = JSON.parse(localStorage.getItem(localKey) || "[]");
+    if (!localCompleted.includes(router.query.course)) {
+      localCompleted.push(router.query.course);
+      localStorage.setItem(localKey, JSON.stringify(localCompleted));
     }
+
+    // 3. Scroll to quiz if available
     if (course.quiz && course.quiz.length > 0 && !checkCourseCompleted) {
        toast("Video done! Scroll down to pass the quiz.", { style: toastStyles });
        quizRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+
+    // 4. Background Sync: send completion to backend API for persistent storage
+    if (duration > 0) {
+      saveProgressToDB(duration, duration); // Save 100%
     }
   };
 
@@ -151,51 +181,40 @@ function CoursePage({ course }) {
     }
   };
 
-  const generateCertificate = () => {
-    const doc = new jsPDF({
-      orientation: "landscape",
-      unit: "px",
-      format: [800, 600]
-    });
-    
-    // Attempt to load the pre-designed certificate base image if available
-    try {
-        const img = new Image();
-        img.src = "/certificate.png"; // Fallback to basic text if image doesn't exist
-        doc.addImage(img, "PNG", 0, 0, 800, 600);
-    } catch (e) {
-        // Just draw a border if no image
-        doc.setLineWidth(4);
-        doc.rect(20, 20, 760, 560);
+  const handleReady = () => {
+    setIsReady(true);
+    if (initialSeekTime > 0 && playerRef.current) {
+      playerRef.current.seekTo(initialSeekTime, "seconds");
+      setInitialSeekTime(0); // Prevent seeking again on subsequent ready events
     }
+  };
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(40);
-    doc.text("Certificate of Completion", 400, 150, null, null, "center");
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(20);
-    doc.text("This certifies that", 400, 250, null, null, "center");
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(35);
+  const generateCertificate = async () => {
     const userName = user?.fullName || user?.firstName || "Student";
-    doc.text(userName, 400, 300, null, null, "center");
+    try {
+      const existingPdfBytes = await fetch("/certificate.pdf").then((res) =>
+        res.arrayBuffer()
+      );
+      const pdfDoc = await PDFDocument.load(existingPdfBytes);
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(20);
-    doc.text(`has successfully completed the course:`, 400, 370, null, null, "center");
+      const pages = pdfDoc.getPages();
+      const firstPage = pages[0];
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(28);
-    doc.text(course.name, 400, 420, null, null, "center");
+      firstPage.drawText(userName, {
+        x: 300,
+        y: 300,
+        size: 40,
+        font: helveticaFont,
+        color: rgb(0.95, 0.1, 0.1),
+      });
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(16);
-    const date = new Date().toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' });
-    doc.text(`Awarded on ${date}`, 400, 500, null, null, "center");
-
-    doc.save(`${course.course}-certificate.pdf`);
+      const uri = await pdfDoc.saveAsBase64({ dataUri: true });
+      saveAs(uri, `${course.course}-certificate.pdf`, { autoBom: true });
+    } catch (err) {
+      console.error("Failed to generate certificate", err);
+      toast.error("Failed to generate certificate", { style: toastStyles });
+    }
   };
 
   return (
@@ -208,14 +227,21 @@ function CoursePage({ course }) {
             url={course.ytURL}
             className="react-player"
             controls={true}
-            onReady={() => setIsReady(true)}
+            onReady={handleReady}
             onDuration={(d) => setDuration(d)}
             onProgress={handleProgress}
-            onSeek={() => setIsSeeking(true)}  // Only set seeking during actual scrub
-            onPlay={() => setIsSeeking(false)} // Resume tracking on play
-            onPause={handlePause}              // Save progress on pause (NOT seeking)
+            onSeek={() => setIsSeeking(true)}  
+            onPlay={() => setIsSeeking(false)} 
+            onPause={handlePause}              
             onEnded={handleEnded}
-            progressInterval={1000} // Fire onProgress every 1s
+            progressInterval={1000} 
+            config={{
+              youtube: {
+                playerVars: {
+                  origin: typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'
+                }
+              }
+            }}
           />
         </div>
 
@@ -252,11 +278,8 @@ function CoursePage({ course }) {
           <div className="course__certificate" style={{ textAlign: "center", marginTop: "40px", paddingBottom: "50px" }}>
              <button 
                 onClick={generateCertificate}
-                style={{
-                  backgroundColor: "#0070f3", color: "white", padding: "15px 30px",
-                  fontSize: "1.2rem", borderRadius: "8px", border: "none", cursor: "pointer",
-                  display: "inline-flex", alignItems: "center", gap: "10px", fontWeight: "bold"
-                }}>
+                className="bg-[#ec3944] text-white font-bold py-3 px-6 rounded-none border-2 border-[#1c1917] shadow-[4px_4px_0_0_rgba(28,25,23,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all inline-flex items-center gap-3 text-xl"
+              >
                 <Award size={24} />
                 Download Certificate
              </button>

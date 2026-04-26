@@ -8,7 +8,6 @@ const nextConfig = {
       {
         source: "/(.*)",
         headers: [
-          { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
@@ -19,8 +18,8 @@ const nextConfig = {
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://clerk.accounts.dev https://*.clerk.accounts.dev https://*.clerk.com https://www.youtube.com https://s.ytimg.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
-              "img-src 'self' data: blob: https://*.clerk.accounts.dev https://*.clerk.com https://img.clerk.com https://i.ytimg.com https://*.youtube.com https://*.gravatar.com https://gravatar.com",
-              "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
+              "img-src 'self' data: blob: https://*.clerk.accounts.dev https://*.clerk.com https://img.clerk.com https://images.clerk.dev https://i.ytimg.com https://*.youtube.com https://*.gravatar.com https://gravatar.com",
+              "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.programiz.com",
               "connect-src 'self' https://*.clerk.accounts.dev https://clerk.accounts.dev https://*.clerk.com https://*.youtube.com https://*.ytimg.com",
               "worker-src 'self' blob:",
             ].join("; "),
