@@ -62,8 +62,8 @@ export default function AdminUsers() {
 
   return (
     <AdminLayout>
-      <div className="admin-page-header">
-        <h1>Users</h1>
+      <div className="admin-page-header ">
+        <h1 >Users</h1>
         <p>View learner progress and manage roles.</p>
       </div>
 
