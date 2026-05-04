@@ -114,19 +114,42 @@ export default function QuizBuilder({ initialQuestions = [], onChange }) {
           </div>
 
           {q.options.map((opt, oi) => (
-            <div className="quiz-option-row" key={oi}>
-              <input
-                type="radio"
-                name={`correct-${qi}`}
-                checked={opt.isCorrect}
-                onChange={() => setCorrect(qi, oi)}
+            <div className="quiz-option-row" key={oi} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+              {/* Styled correct-answer tick button */}
+              <button
+                type="button"
+                onClick={() => setCorrect(qi, oi)}
                 aria-label={`Mark option ${oi + 1} as correct`}
-              />
+                title={opt.isCorrect ? "Correct answer" : "Click to mark as correct"}
+                style={{
+                  flexShrink: 0,
+                  width: "28px",
+                  height: "28px",
+                  borderRadius: "50%",
+                  border: opt.isCorrect ? "2px solid #16a34a" : "2px solid #64748b",
+                  background: opt.isCorrect ? "#16a34a" : "transparent",
+                  color: opt.isCorrect ? "#fff" : "#64748b",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "14px",
+                  fontWeight: "bold",
+                  transition: "all 0.15s",
+                }}
+              >
+                {opt.isCorrect ? "✓" : "○"}
+              </button>
               <input
                 type="text"
                 value={opt.answer}
                 placeholder={`Option ${oi + 1}`}
                 onChange={(e) => updateOption(qi, oi, e.target.value)}
+                style={{
+                  flex: 1,
+                  border: opt.isCorrect ? "2px solid #16a34a" : undefined,
+                  background: opt.isCorrect ? "rgba(22,163,74,0.07)" : undefined,
+                }}
               />
               <button
                 type="button"

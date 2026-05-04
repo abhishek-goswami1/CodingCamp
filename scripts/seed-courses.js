@@ -52,7 +52,7 @@ const courses = [
     ],
   },
   {
-    course: "html",
+    course: "HTML",
     name: "HTML",
     description:
       "HTML is the foundation of all web pages. It defines the meaning and structure of web content.",
@@ -74,7 +74,7 @@ const courses = [
     description:
       "CSS is a stylesheet language used to describe the presentation of a document written in HTML.",
     image: "css.svg",
-    ytURL: "https://www.youtube.com/watch?v=1Rs2ND1ryYc",
+    ytURL: "https://youtu.be/Z4pCqK-V_Wo?si=jYLK0MXZR_6GS5vJ",
     resources: [
       { name: "MDN CSS Reference", url: "https://developer.mozilla.org/en-US/docs/Web/CSS" },
       { name: "CSS Tricks", url: "https://css-tricks.com/" },

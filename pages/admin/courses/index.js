@@ -135,7 +135,19 @@ export default function AdminCourses() {
                   <tr key={course.course}>
                     <td>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                        <img src={`/images/${course.image}`} alt="" width={28} height={28} style={{ borderRadius: "4px" }} />
+                        {course.ytURL ? (
+                          <img
+                            src={`https://img.youtube.com/vi/${
+                              course.ytURL.match(/(?:v=|youtu\.be\/|embed\/)([^&?/]+)/)?.[1] || ""
+                            }/mqdefault.jpg`}
+                            alt={course.name}
+                            width={80}
+                            height={45}
+                            style={{ borderRadius: "4px", objectFit: "cover", border: "1px solid #1e2535", flexShrink: 0 }}
+                          />
+                        ) : (
+                          <img src={`/images/${course.image}`} alt="" width={28} height={28} style={{ borderRadius: "4px" }} />
+                        )}
                         <strong style={{ color: "#f1f5f9" }}>{course.name}</strong>
                       </div>
                     </td>
