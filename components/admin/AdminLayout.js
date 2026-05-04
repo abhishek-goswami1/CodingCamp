@@ -39,9 +39,6 @@ export default function AdminLayout({ children }) {
               <Link href="/admin">
                 <a className="font-['Plus_Jakarta_Sans'] font-bold text-[#EE3F46] no-underline">Dashboard</a>
               </Link>
-              <Link href="/admin/courses">
-                <a className="font-['Plus_Jakarta_Sans'] font-bold text-stone-600 hover:text-stone-900 transition-all">Curriculum</a>
-              </Link>
             </div>
           </div>
           <div className="flex items-center gap-4">
